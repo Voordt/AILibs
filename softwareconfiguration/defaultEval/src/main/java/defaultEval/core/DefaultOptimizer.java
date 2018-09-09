@@ -23,31 +23,14 @@ public class DefaultOptimizer extends Optimizer{
 	
 	@Override
 	public void optimize() {
+		
 		Map<String, String> searcherParameter = new HashMap<>();
-		if(searcher != null) {
-			// add parameter
-			for (Parameter p : searcher.getParameters()) {
-				searcherParameter.put(p.getName(), correctParameterSyntax( p.getDefaultValue().toString(), p.getDefaultDomain()));
-			}
-		}
 		finalSearcher = new ComponentInstance(searcher, searcherParameter, new HashMap<>());
 		
 		Map<String, String> evaluatorParameter = new HashMap<>();
-		if(evaluator != null) {
-			// add parameter
-			for (Parameter p : evaluator.getParameters()) {
-				evaluatorParameter.put(p.getName(), correctParameterSyntax( p.getDefaultValue().toString(), p.getDefaultDomain()));
-			}
-		}
 		finalEvaluator = new ComponentInstance(evaluator, evaluatorParameter, new HashMap<>());
 		
 		Map<String, String> classifierParameter = new HashMap<>();
-		if(classifier != null) {
-			// add parameter
-			for (Parameter p : classifier.getParameters()) {
-				classifierParameter.put(p.getName(), correctParameterSyntax( p.getDefaultValue().toString(), p.getDefaultDomain()));
-			}
-		}
 		finalClassifier = new ComponentInstance(classifier, classifierParameter, new HashMap<>());
 	}
 	

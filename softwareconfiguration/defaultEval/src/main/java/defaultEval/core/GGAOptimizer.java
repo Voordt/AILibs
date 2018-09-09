@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Locale;
 
 import org.apache.commons.math3.util.Pair;
@@ -34,14 +36,41 @@ public class GGAOptimizer extends Optimizer {
 
 		generatePyWrapper();
 
-		// run gga TODO
-		/*try {
-			Runtime rt = Runtime.getRuntime();
-
-			String command = String.format("");
-
-			final Process proc = rt.exec(command);
-
+		generateInstFile();
+		
+		try {
+						
+			ArrayList<String> cmd = new ArrayList<>();
+			cmd.add("optimizer/dgga/dgga-src/dgga");
+			cmd.add("optimizer/dgga/dgga-src/generated/" + buildFileName() + ".xml" );
+			cmd.add("optimizer/dgga/dgga-src/generated/inst_" + buildFileName() + ".txt" );
+			cmd.add("-p");
+			cmd.add("100");
+			cmd.add("-g");
+			cmd.add("100");
+			cmd.add("--gf");
+			cmd.add("75");
+			cmd.add("--is");
+			cmd.add("5");
+			cmd.add("--ie");
+			cmd.add("2000");
+			cmd.add("--tacl");
+			cmd.add("10");
+			cmd.add("-v");
+			cmd.add("5"); // verbose
+			cmd.add("-twc");
+			cmd.add("" + maxRuntimeParam);
+			
+			cmd.add(String.format("%s/optimizer/hyperband/main_%s.py", environment.getAbsolutePath(), buildFileName()));
+			
+			
+			ProcessBuilder pb = new ProcessBuilder(cmd);
+			pb.directory(environment.getAbsoluteFile());
+			//pb.redirectErrorStream(true);
+			//pb.redirectOutput(Redirect.PIPE);
+			final Process proc = pb.start();
+			
+			
 			InputStream i = proc.getInputStream();
 
 			new Thread(new Runnable() {
@@ -70,7 +99,7 @@ public class GGAOptimizer extends Optimizer {
 
 		} catch (IOException | ParseException e) {
 			e.printStackTrace();
-		}*/
+		}
 
 		System.out.println("final-searcher: " + finalSearcher);
 		System.out.println("final-evaluator: " + finalEvaluator);
@@ -78,9 +107,26 @@ public class GGAOptimizer extends Optimizer {
 	}
 
 	private void createFinalInstances() throws FileNotFoundException, IOException, ParseException {
-
+		// TODO
 	}
 
+	
+	private void generateInstFile() {
+		// generate py-wrapper file
+		PrintStream instStream = null;
+		
+		try {
+			instStream = new PrintStream(new FileOutputStream(new File(environment.getAbsolutePath() + "/optimizer/dgga/dgga-src/generated/" + "inst_" + buildFileName() + ".txt")));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		instStream.println(seed + " " + dataSetFolder.getAbsolutePath() + "/" + dataSet + ".arff");
+		
+		instStream.close();	
+	}
+	
+	
 	private void generatePyWrapper() {
 		// generate py-wrapper file
 		PrintStream pyWrapperStream = null;
@@ -136,8 +182,7 @@ public class GGAOptimizer extends Optimizer {
 		
 		pyWrapperStream.println(String.format("eargs.append(\"%s/results/%s.txt\")", environment.getAbsolutePath(), buildFileName()));
 		
-		
-		pyWrapperStream.println("eargs.append(args[1])");
+		//pyWrapperStream.println("eargs.append(args[1])");
 		
 		pyWrapperStream.println("os.execvp(\"java\", eargs)");
 		pyWrapperStream.close();		
@@ -193,7 +238,7 @@ public class GGAOptimizer extends Optimizer {
 
 			if (n_pd.isInteger()) {
 				// int
-				return String.format("start=\"%d\" end=\"&d\"", n_pd.getMin(), n_pd.getMax() + 1);
+				return String.format("start=\"%d\" end=\"&d\"", (int)n_pd.getMin(), (int)n_pd.getMax() + 1);
 			} else {
 				// float
 				return String.format("start=\"%f\" end=\"%f\"", n_pd.getMin(), n_pd.getMax());

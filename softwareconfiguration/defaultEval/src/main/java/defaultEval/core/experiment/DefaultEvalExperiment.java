@@ -14,6 +14,7 @@ import org.aeonbits.owner.ConfigCache;
 import de.upb.crc901.automl.hascowekaml.WEKAPipelineFactory;
 import de.upb.crc901.automl.pipeline.basic.MLPipeline;
 import defaultEval.core.DefaultOptimizer;
+import defaultEval.core.GGAOptimizer;
 import defaultEval.core.HyperbandOptimizer;
 import defaultEval.core.Optimizer;
 import defaultEval.core.SMACOptimizer;
@@ -95,7 +96,9 @@ public class DefaultEvalExperiment {
 					break;
 				
 				case "DGGA":
-					
+					optimizer = new GGAOptimizer(searcher, evaluator, classifier, datasetName, m.getEnvironment(), m.getDatasetFolder(), seed, m.getMaxRuntimeParam(), m.getMaxRuntime());
+					break;
+				
 				case "default":
 					optimizer = new DefaultOptimizer(searcher, evaluator, classifier, datasetName, m.getEnvironment(), m.getDatasetFolder(), seed, m.getMaxRuntimeParam(), m.getMaxRuntime());
 					break;
@@ -126,7 +129,7 @@ public class DefaultEvalExperiment {
 				processor.processResults(results);
 			}
 		});
-		runner.randomlyConductExperiments(1, true);
+		runner.randomlyConductExperiments(10, true);
 	}
 
 }
