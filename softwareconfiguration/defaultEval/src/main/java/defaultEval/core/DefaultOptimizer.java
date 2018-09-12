@@ -9,7 +9,7 @@ import hasco.model.ComponentInstance;
 import hasco.model.Parameter;
 
 /**
- * Ok i know this is not really an optimizer ;)
+ * Does not return any arguments. When pipeline is created default values will be used.
  * 
  * @author Joshua
  *

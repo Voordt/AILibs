@@ -31,6 +31,11 @@ public class WEKAPipelineFactory implements Factory<MLPipeline> {
 			classifierCI = groundComponent.getSatisfactionOfRequiredInterfaces().get("classifier");
 			break;
 		}
+		case "pipelineWrapper": {
+			/* get the classifier of a pipeline with only one classifier and no preprocessors */
+			classifierCI = groundComponent.getSatisfactionOfRequiredInterfaces().get("classifier");
+			break;
+		}
 		default: {
 			classifierCI = groundComponent;
 			break;

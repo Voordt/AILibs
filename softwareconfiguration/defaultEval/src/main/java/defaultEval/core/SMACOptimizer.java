@@ -32,6 +32,14 @@ import hasco.serialization.ComponentLoader;
 import jaicore.processes.ProcessUtil;
 import scala.annotation.elidable;
 
+
+
+/**
+ * Uses ML Plan to optimize SMAC
+ * 
+ * @author Joshua
+ *
+ */
 public class SMACOptimizer extends Optimizer {
 
 	public SMACOptimizer(Component searcher, Component evaluator, Component classifier, String dataSet,

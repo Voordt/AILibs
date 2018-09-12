@@ -109,7 +109,7 @@ public class HASCOForWekaML implements IObservableGraphAlgorithm<TFDNode, String
 
 		/* create algorithm */
 		hasco = new HASCOFD<>(cl.getComponents(), cl.getParamConfigs(), new WEKAPipelineFactory(), this.preferredNodeEvaluator,
-				"AbstractClassifier", ce, this.oversearchAvoidanceConfig);
+				"MLPipeline", ce, this.oversearchAvoidanceConfig);
 		
 		if (this.loggerName != null && this.loggerName.length() > 0) {
 			hasco.setLoggerName(this.loggerName + ".hasco");

@@ -12,11 +12,15 @@ import java.util.Properties;
 
 import jaicore.basic.SQLAdapter;
 
-
+/**
+ * Helper Class to generate some statistics for gathered data
+ * 
+ * @author Joshua
+ *
+ */
 public class PerformanceOrderHelper {
 
 	public static Properties settings = new Properties();
-	
 	
 	public static void main(String[] args) throws SQLException, FileNotFoundException, IOException {
 		settings.load(new FileReader("helper.properties"));
@@ -29,8 +33,6 @@ public class PerformanceOrderHelper {
 		}
 		
 	}
-	
-	
 	
 	class ResultEntry implements Comparable<ResultEntry>{
 		double performace;
@@ -68,17 +70,12 @@ public class PerformanceOrderHelper {
 		
 	}
 	
-	
 	public SQLAdapter adapter;
-	
 	
 	public PerformanceOrderHelper() {
 		adapter = new SQLAdapter(settings.getProperty("db.host"), settings.getProperty("db.username"), settings.getProperty("db.password"), settings.getProperty("db.database"));
 				
 	}
-	
-	
-	
 	
 	/**
 	 * Creates a ranking based on the given Dataset

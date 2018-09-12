@@ -16,6 +16,7 @@ import de.upb.crc901.automl.pipeline.basic.MLPipeline;
 import defaultEval.core.DefaultOptimizer;
 import defaultEval.core.GGAOptimizer;
 import defaultEval.core.HyperbandOptimizer;
+import defaultEval.core.MlPlanOptimizer;
 import defaultEval.core.Optimizer;
 import defaultEval.core.SMACOptimizer;
 import defaultEval.core.Util;
@@ -99,6 +100,10 @@ public class DefaultEvalExperiment {
 					optimizer = new GGAOptimizer(searcher, evaluator, classifier, datasetName, m.getEnvironment(), m.getDatasetFolder(), seed, m.getMaxRuntimeParam(), m.getMaxRuntime());
 					break;
 				
+				case "ML-PLAN":
+					optimizer = new MlPlanOptimizer(searcher, evaluator, classifier, datasetName, m.getEnvironment(), m.getDatasetFolder(), seed, m.getMaxRuntimeParam(), m.getMaxRuntime());
+					break;
+					
 				case "default":
 					optimizer = new DefaultOptimizer(searcher, evaluator, classifier, datasetName, m.getEnvironment(), m.getDatasetFolder(), seed, m.getMaxRuntimeParam(), m.getMaxRuntime());
 					break;
@@ -109,20 +114,21 @@ public class DefaultEvalExperiment {
 				
 				optimizer.optimize();
 				
-				WEKAPipelineFactory factory = new WEKAPipelineFactory();
-				Classifier wekaClassifier = factory.getComponentInstantiation(Util.createPipeline(optimizer.getFinalSearcher(), optimizer.getFinalEvaluator(), optimizer.getFinalClassifier()));
 				Instances instances = Util.loadInstances(m.getDatasetFolder().getAbsolutePath(), datasetName);
-				
 				List<Instances> instancesList = WekaUtil.getStratifiedSplit(instances, new Random(seed), 0.7, 0.3);
 				
-				Evaluation evaluation = new Evaluation(instancesList.get(0));
+				Classifier wekaClassifier = optimizer.getOptimizedClassifier();
 				wekaClassifier.buildClassifier(instancesList.get(0));
+				
+				Evaluation evaluation = new Evaluation(instancesList.get(0));
 				evaluation.evaluateModel(wekaClassifier, instancesList.get(1));
 				
 				/* report results */
 				results.put("pctIncorrect", evaluation.pctIncorrect());
-				results.put("searcher_parameters", optimizer.getFinalSearcher().getParameterValues());
-				results.put("evaluator_parameters", optimizer.getFinalEvaluator().getParameterValues());
+				if(searcher != null) {
+					results.put("searcher_parameters", optimizer.getFinalSearcher().getParameterValues());
+					results.put("evaluator_parameters", optimizer.getFinalEvaluator().getParameterValues());		
+				}
 				results.put("classifier_parameters", optimizer.getFinalClassifier().getParameterValues());
 				results.put("timeout_output", m.getMaxRuntimeParam());
 				

@@ -35,20 +35,30 @@ import weka.classifiers.functions.Logistic;
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSource;
 
+/**
+ * Class to get loss for MonteCarloCrossValidationEvaluator with 5 repeats for a given pipeline with arguments
+ * 
+ * @author Joshua
+ *
+ */
 public class PipelineEvaluator {
 	
+	/**
+	 * Arguments given in this order <br>
+	 * <br>
+	 * File to store results in<br>
+	 * File of Dataset<br>
+	 * seed<br>
+	 * Searcher name / or null if no preprocessor<br>
+	 * Searcher parameters<br>
+	 * Evaluator name<br>
+	 * Evaluator parameters<br>
+	 * Classifier name<br>
+	 * Classifier parameters<br>
+	 * 
+	 * @param args the Arguments 
+	 */
 	public static void main(String[] args) {
-		// read args
-		// result File	
-		// Data path
-		// seed
-		// Searcher (or null)
-		// ... Parmas
-		// Evaluator 
-		// ... Parmas
-		// Classifier
-		// ... Params
-		
 		int index = 0;
 		double loss = 1000000;
 		String resultFile = args[index++];

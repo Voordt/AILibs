@@ -65,12 +65,13 @@ public class MLPlan extends AbstractClassifier implements Classifier, OptionHand
 	private float portionOfDataForPhase2 = 0;
 	private int numberOfConsideredSolutions = 100;
 	private int numberOfMCIterationsPerSolutionInSelectionPhase = 3;
-
+	
 	/* variable relevant for and during a single run */
 	private long timeOfStart = -1;
 	private final HASCOForWekaML hasco;
 
 	/* output variables */
+	HASCOForWekaMLSolution selectedModel;
 	private Classifier selectedClassifier;
 
 	public MLPlan(File configurationFile) {
@@ -372,7 +373,7 @@ public class MLPlan extends AbstractClassifier implements Classifier, OptionHand
 			t.setName("final-evaluator-" + evaluatorCounter.incrementAndGet());
 			return t;
 		});
-		HASCOForWekaMLSolution selectedModel = bestSolution; // backup solution
+		selectedModel = bestSolution; // backup solution
 		final Semaphore sem = new Semaphore(0);
 		long timestampOfDeadline = this.timeOfStart + this.timeoutInS * 1000;
 
@@ -598,4 +599,9 @@ public class MLPlan extends AbstractClassifier implements Classifier, OptionHand
 	public ISolutionEvaluator<TFDNode,Double> getSolutionEvaluator() {
 		return hasco.getSolutionEvaluator();
 	}
+	
+	public HASCOForWekaMLSolution getSelectedModel() {
+		return selectedModel;
+	}
+	
 }

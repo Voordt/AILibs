@@ -21,6 +21,12 @@ import hasco.model.Parameter;
 import hasco.model.ParameterDomain;
 import hasco.serialization.ComponentLoader;
 
+/**
+ * WIP
+ * 
+ * @author Joshua
+ *
+ */
 public class GGAOptimizer extends Optimizer {
 
 	public GGAOptimizer(Component searcher, Component evaluator, Component classifier, String dataSet, File environment,

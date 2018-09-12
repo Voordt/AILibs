@@ -34,6 +34,13 @@ import hasco.serialization.ComponentLoader;
 import jaicore.processes.ProcessUtil;
 import scala.annotation.elidable;
 
+
+/**
+ * Uses Hyperband to optimize hyperparameters.
+ * 
+ * @author Joshua
+ *
+ */
 public class HyperbandOptimizer extends Optimizer{
 	
 
@@ -259,6 +266,7 @@ public class HyperbandOptimizer extends Optimizer{
 		pyWrapperStream.close();
 	}
 	
+	
 	private String createDomainWrapper(String input, ParameterDomain pd) {
 		if(pd instanceof NumericParameterDomain) {
 			NumericParameterDomain n_pd = (NumericParameterDomain) pd;
@@ -271,44 +279,6 @@ public class HyperbandOptimizer extends Optimizer{
 	@Override
 	protected String buildFileName() {
 		return super.buildFileName() + "Hyperband";
-	}
-	
-	
-	public static void main(String[] args) {
-		
-		ComponentLoader cl_p = new ComponentLoader();
-		ComponentLoader cl_c = new ComponentLoader();
-		
-		try {
-			Util.loadClassifierComponents(cl_c, "F:\\Data\\Uni\\PG\\DefaultEvalEnvironment");
-			Util.loadPreprocessorComponents(cl_p, "F:\\Data\\Uni\\PG\\DefaultEvalEnvironment");	
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-		Component searcher = null;
-		Component evaluator = null;
-		Component classifier = null;
-		
-		for (Component c : cl_p.getComponents()) {
-			if(c.getName().equals("weka.attributeSelection.GreedyStepwise")) {
-				searcher = c;
-			}
-		}
-		
-		for (Component c : cl_p.getComponents()) {
-			if(c.getName().equals("weka.attributeSelection.CorrelationAttributeEval")) {
-				evaluator = c;
-			}
-		}
-		
-		for (Component c : cl_c.getComponents()) {
-			if(c.getName().equals("weka.classifiers.functions.Logistic")) {
-				classifier = c;
-			}
-		}
-		
-		HyperbandOptimizer o = new HyperbandOptimizer(searcher, evaluator, classifier, "breast-cancer", new File("F:\\Data\\Uni\\PG\\DefaultEvalEnvironment"),new File("F:\\Data\\Uni\\PG\\DefaultEvalEnvironment\\datasets"), 0, 5, 100);
-		o.optimize();
 	}
 	
 	

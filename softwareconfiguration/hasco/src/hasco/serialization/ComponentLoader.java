@@ -99,7 +99,9 @@ public class ComponentLoader {
         for (JsonNode providedInterface : component.path("providedInterface")) {
           c.addProvidedInterface(providedInterface.asText());
         }
-
+        // always add name as provided interface
+        c.addProvidedInterface(component.get("name").asText());
+        
         // add required interfaces
         for (JsonNode requiredInterface : component.path("requiredInterface")) {
         	if (!requiredInterface.has("id"))
