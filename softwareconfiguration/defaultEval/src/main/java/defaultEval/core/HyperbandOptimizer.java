@@ -56,9 +56,7 @@ public class HyperbandOptimizer extends Optimizer{
 		generatePyWrapper();
 		
 		// run hyperband
-		// start SMAC
 		try {
-			Runtime rt = Runtime.getRuntime();
 			
 			ArrayList<String> cmd = new ArrayList<>();
 			cmd.add("python");
@@ -68,12 +66,10 @@ public class HyperbandOptimizer extends Optimizer{
 			
 			ProcessBuilder pb = new ProcessBuilder(cmd);
 			pb.directory(environment.getAbsoluteFile());
-			//pb.redirectErrorStream(true);
-			//pb.redirectOutput(Redirect.PIPE);
 			final Process proc = pb.start();
 			
-			InputStream i = proc.getInputStream();
 			
+			// Thread to kill process if it takes to long
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
@@ -83,7 +79,6 @@ public class HyperbandOptimizer extends Optimizer{
 						try {
 							Thread.sleep(100);
 						} catch (InterruptedException e) {
-							// TODO 
 							e.printStackTrace();
 						}
 					}
@@ -95,12 +90,12 @@ public class HyperbandOptimizer extends Optimizer{
 							ProcessUtil.killProcess(id);		
 						}
 					} catch (IOException e) {
-						// TODO
 						e.printStackTrace();
 					}
 				}
 			}).start();
 			
+			// Thread to monitor streams
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
@@ -114,7 +109,6 @@ public class HyperbandOptimizer extends Optimizer{
 					}
 				}
 			}).start();
-			
 			
 			new Thread(new Runnable() {
 				@Override
@@ -130,17 +124,14 @@ public class HyperbandOptimizer extends Optimizer{
 				}
 			}).start();
 			
+			
 			proc.waitFor();
 			
-			int exitValue = proc.exitValue();
-			
 			createFinalInstances();
-			
 			
 		} catch (IOException | ParseException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			// TODO 
 			e.printStackTrace();
 		}
 
@@ -149,6 +140,13 @@ public class HyperbandOptimizer extends Optimizer{
 		System.out.println("final-classifier: " + finalClassifier);
 	}
 
+	/**
+	 * Creates the final Instances of the Components by reading the Parameters found by Hyperband from the result file
+	 * 
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * @throws ParseException
+	 */
 	private void createFinalInstances() throws FileNotFoundException, IOException, ParseException {
 		Scanner sc = new Scanner(new File(environment.getAbsolutePath() + "/hyperband-output/" + buildFileName() + ".json"));
 		StringBuilder sb = new StringBuilder();
@@ -158,6 +156,7 @@ public class HyperbandOptimizer extends Optimizer{
 		}
 		sc.close();
 		
+		// find best result
 		JSONArray resultList = new JSONArray(sb.toString());
 		JSONObject bestResult = null;
 		for (int i = 0; i < resultList.length(); i++) {
@@ -192,6 +191,9 @@ public class HyperbandOptimizer extends Optimizer{
 		
 	}
 
+	/**
+	 * Generates a Wrapper file, to be called by Hyperband, that starts the PipelineEvaluator.jar and return the results
+	 */
 	private void generatePyWrapper() {
 		// generate py-wrapper file
 		PrintStream pyWrapperStream = null;
@@ -206,12 +208,6 @@ public class HyperbandOptimizer extends Optimizer{
 		pyWrapperStream.println("import sys, math");
 		pyWrapperStream.println("import random");
 		pyWrapperStream.println("from subprocess import call");
-		
-//		pyWrapperStream.println("space = { ");
-//		for (Pair<Parameter, ParamType> parameterPair : parameterList) {
-//			pyWrapperStream.println("\t" + getSpaceEntryByDomain(parameterPair) + ",");	
-//		}
-//		pyWrapperStream.println("}");
 		
 		pyWrapperStream.println("def get_params():");
 		pyWrapperStream.println("\tparams = {");
@@ -245,6 +241,9 @@ public class HyperbandOptimizer extends Optimizer{
 		
 	}
 	
+	/**
+	 * Generate a script to Start the optimization process
+	 */
 	private void generatePyMain() {
 		// generate py-wrapper file
 		PrintStream pyWrapperStream = null;
@@ -266,6 +265,7 @@ public class HyperbandOptimizer extends Optimizer{
 		pyWrapperStream.close();
 	}
 	
+	// PRIVATE Methods to deal with Naming and Parameter conversion
 	
 	private String createDomainWrapper(String input, ParameterDomain pd) {
 		if(pd instanceof NumericParameterDomain) {

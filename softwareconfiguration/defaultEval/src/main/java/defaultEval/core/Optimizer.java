@@ -150,12 +150,23 @@ public abstract class Optimizer {
 		return input;
 	}
 	
-	@Deprecated
+	/**
+	 * creates a unique parameter name, to distinguish between Searcher, Evaluator and Classifier Parameters
+	 * 
+	 * @param p the Parameter
+	 * @param t the Type of the Parameter
+	 * @return
+	 */
 	protected String getUniqueParamName(Parameter p, ParamType t) {
 		return Util.convertToUniqueParamName(p.getName(), t);
 	}
 	
-	@Deprecated
+	/**
+	 * creates a unique parameter name, to distinguish between Searcher, Evaluator and Classifier Parameters
+	 * 
+	 * @param p
+	 * @return
+	 */
 	protected String getUniqueParamName(Pair<Parameter, ParamType> p) {
 		return Util.convertToUniqueParamName(p.getFirst().getName(), p.getSecond());
 	}

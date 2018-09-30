@@ -81,6 +81,7 @@ public class SMACOptimizer extends Optimizer {
 			// pb.redirectOutput(Redirect.PIPE);
 			Process proc = pb.start();
 
+			// Thread to kill SMAC if it does not stop
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
@@ -107,6 +108,7 @@ public class SMACOptimizer extends Optimizer {
 				}
 			}).start();
 
+			// Threads to monitor Streams
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
@@ -136,15 +138,12 @@ public class SMACOptimizer extends Optimizer {
 			}).start();
 
 			proc.waitFor();
-			int exitValue = proc.exitValue();
 
 			createFinalInstances();
 
 		} catch (IOException e) {
-			// TODO
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			// TODO
 			e.printStackTrace();
 		}
 
@@ -153,6 +152,12 @@ public class SMACOptimizer extends Optimizer {
 		System.out.println("final-classifier: " + finalClassifier);
 	}
 
+	/**
+	 * Reads SMACS results from the output files
+	 * 
+	 * @throws IOException
+	 * @throws FileNotFoundException
+	 */
 	private void createFinalInstances() throws IOException, FileNotFoundException {
 		// read outputs
 		File dir = new File(
@@ -189,10 +194,8 @@ public class SMACOptimizer extends Optimizer {
 
 		CSVParser parserRunsAndResults = new CSVParser(new FileReader(outputRunsAndResults),
 				CSVFormat.DEFAULT.withHeader());
-		// CSVParser parserUniqConfigurations = new CSVParser(new
-		// FileReader(outputUniqConfigurations), CSVFormat.DEFAULT);
-
-		// find opt
+		
+		// find best
 		int bestIndex = 0;
 		double bestScore = 100;
 		for (CSVRecord result : parserRunsAndResults) {
@@ -249,11 +252,13 @@ public class SMACOptimizer extends Optimizer {
 		scanner.close();
 	}
 
+	/**
+	 * Generates a Wrapper file, to be called by SMAC, that starts the PipelineEvaluator.jar and return the results
+	 */
 	private void generatePyWrapper() {
 		// generate py-wrapper file
 		PrintStream pyWrapperStream = null;
-		// TODO do not generate if allready there
-
+		
 		try {
 			pyWrapperStream = new PrintStream(new FileOutputStream(
 					new File(environment.getAbsolutePath() + "/py_wrapper/" + buildFileName() + ".py")));
@@ -336,6 +341,11 @@ public class SMACOptimizer extends Optimizer {
 		pyWrapperStream.close();
 	}
 
+	
+	
+	/**
+	 * Generates a PCS File, for the Parameter Space needed to run SMAC
+	 */
 	private void generatePCSFile() {
 		// generate params file
 		PrintStream pcsStream = null;
@@ -377,10 +387,13 @@ public class SMACOptimizer extends Optimizer {
 				pcsStream.println("} [" + parameterPair.getFirst().getDefaultValue().toString() + "]");
 			}
 		}
-
 		pcsStream.close();
 	}
 
+	
+	// PRIVATE Methods to deal with Naming and Parameter conversion
+	
+	
 	@Override
 	protected String buildFileName() {
 		return super.buildFileName() + "SMAC";

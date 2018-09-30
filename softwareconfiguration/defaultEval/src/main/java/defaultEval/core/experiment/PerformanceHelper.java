@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Properties;
 
 import org.apache.commons.math.stat.descriptive.moment.Mean;
@@ -18,7 +19,12 @@ import jaicore.basic.SQLAdapter;
 import scala.annotation.elidable;
 import scala.runtime.StringFormat;
 
-
+/**
+ * Creates the tables of the performance of each pipeline with each optimization technique
+ * 
+ * @author Joshua
+ *
+ */
 public class PerformanceHelper {
 
 	public static Properties settings = new Properties();
@@ -31,10 +37,11 @@ public class PerformanceHelper {
 		}
 		
 		for(String data : readData()) {
-			System.out.println("\n\n section{" + data + "}\n");
-			System.out.println("\\begin{longtable}{ l|c c c c |c c c c |c c c c | }");
-			System.out.println("name & n & e & loss & stddev & n & e & loss & stddev & n & e & loss & stddev \\\\");
-			System.out.println("\\hline{\\tiny }");
+			System.out.println("\n\n \\subsection{" + data + "}\n");
+			System.out.println("\\begin{longtable}{ l| c | c | c | c | }");
+			System.out.println("\\hline{\\tiny}");
+			System.out.println("Pipeline & Default & SMAC & Hyperband & ML-Plan \\\\");
+			System.out.println("\\hline{\\tiny}");
 			new PerformanceHelper().createRanking(data);
 			System.out.println("\\end{longtable}");
 			
@@ -99,12 +106,18 @@ public class PerformanceHelper {
 	 */
 	private void createRanking(String dataset) throws SQLException {
 		
+		HashMap<String, HashMap<String, String>> results = new HashMap<>();
+		
+		HashMap<String, Integer> optimizerResults = new HashMap<>();
+		
 		for(String classifierName : readClassifiers()) {
 			for(String p : readPreprocessors()) {
 
-				System.out.print(String.format("%s;%s", getShortName(classifierName), GetPreShortName(p)));
 				
-				for(String optimizerName : new String[] {"default", "SMAC", "Hyperband"}) {
+				double bestMean = 1000;
+				String bestOptimizer = "";
+				
+				for(String optimizerName : new String[] {"default", "SMAC", "Hyperband", "ML-PLAN"}) {
 					StringBuilder queryStringSB = new StringBuilder();
 					queryStringSB.append("SELECT * FROM ");
 					queryStringSB.append(settings.getProperty("db.table"));
@@ -147,10 +160,17 @@ public class PerformanceHelper {
 					double m = 0;
 					int error = 0;
 					while (rs.next()) {
+						int seed = -1;
+						seed = Integer.valueOf(rs.getString("seed"));
+						
+						if(seed < 1000 && optimizerName.equals("ML-PLAN")) {
+							continue;
+						}
+						
 						if(rs.getString("pctIncorrect") != null && !rs.getString("pctIncorrect").equals("")) {
-							performance.add(rs.getDouble("pctIncorrect")/100d);
+							performance.add(rs.getDouble("pctIncorrect"));
 							i++;
-							m += rs.getDouble("pctIncorrect")/100d;
+							m += rs.getDouble("pctIncorrect");
 						}else {
 							error++;
 						}
@@ -170,25 +190,89 @@ public class PerformanceHelper {
 						StandardDeviation stdDev = new StandardDeviation();
 						double stdDevValue = stdDev.evaluate(data);
 						
-						System.out.print(String.format(" & %d", i));
-						System.out.print(String.format(" & %d", error));
-						System.out.print(String.format(" & %f", m));
-						System.out.print(String.format(" & %f", stdDevValue));
+						
+						HashMap<String, String> r = new HashMap<>();
+						
+						r.put("number", String.format("%d", i));
+						r.put("error", String.format("%d", error));
+						r.put("mean", String.format("%.2f", m));
+						r.put("std", String.format("%.2f", stdDevValue));
+						
+						//System.out.print(String.format(" & %d(%d) %.2f$\\pm$%.2f", i, error, m, stdDevValue));
 						//System.out.print(String.format("& %d", i));
 						
+						results.put(classifierName + p + optimizerName, r);
+						
+						if(bestMean > m) {
+							bestMean = m;
+							bestOptimizer = optimizerName;
+						}
+						
 					}else {
-						System.out.print(String.format(" & %s", "-"));
-						System.out.print(String.format(" & %s", "-"));
-						System.out.print(String.format(" & %s", "-"));
-						System.out.print(String.format(" & %s", "-"));
+						//System.out.print(String.format(" & -(%d)", error));
+						HashMap<String, String> r = new HashMap<>();
+						
+						r.put("number", String.format("%d", i));
+						r.put("error", String.format("%d", error));
+						r.put("mean", String.format("-"));
+						r.put("std", String.format("-"));
+						
+						//System.out.print(String.format(" & %d(%d) %.2f$\\pm$%.2f", i, error, m, stdDevValue));
+						//System.out.print(String.format("& %d", i));
+						
+						results.put(classifierName + p + optimizerName, r);
 						
 					}
 					
 					
 				}
+				
+				HashMap<String, String> r = new HashMap<>();
+				r.put("bestMean", String.format("%f", bestMean));
+				r.put("bestOptimizer", String.format("%s", bestOptimizer));
+				results.put(classifierName + p, r);
+				
+				Integer n = optimizerResults.get(bestOptimizer);
+				int nn = (n == null) ? 0 : n;
+				nn++;
+				optimizerResults.put(bestOptimizer, nn);
+			}
+		}
+		
+		for (String opt : optimizerResults.keySet()) {
+		//	System.out.println(opt + " " + optimizerResults.get(opt));
+		}
+		
+		
+		for(String classifierName : readClassifiers()) {
+			for(String p : readPreprocessors()) {
+
+				System.out.print(String.format("%s;%s", getShortName(classifierName), GetPreShortName(p)));
+				
+				for(String optimizerName : new String[] {"default", "SMAC", "Hyperband", "ML-PLAN"}) {
+					HashMap<String, String> r = results.get(classifierName + p + optimizerName);
+					
+					if(!r.get("number").equals("0")) {
+						
+						if(results.get(classifierName+p).get("bestOptimizer").equals(optimizerName)) {
+							System.out.print(String.format(" & \\textbf{%s(%s) %s$\\pm$%s}", r.get("number"), r.get("error"), r.get("mean"), r.get("std")));
+							
+						}else {
+							System.out.print(String.format(" & %s(%s) %s$\\pm$%s", r.get("number"), r.get("error"), r.get("mean"), r.get("std")));
+								
+						}
+						
+						
+					}else {
+						System.out.print(String.format(" & %s(%s) %s$\\pm$%s", r.get("number"), r.get("error"), "-", "-"));
+						
+					}
+					
+				}
 				System.out.print(String.format("\\\\ \n"));
 			}
 		}
+		
 		
 	}
 	

@@ -25,14 +25,39 @@ public class Util {
 		searcher, evaluator, classifier
 	}
 
+	/**
+	 * Loads Classifiers from the environment
+	 * 
+	 * @param cl Component loader to be used
+	 * @param envPath Path to the environment
+	 * @throws IOException
+	 */
 	public static void loadClassifierComponents(ComponentLoader cl, String envPath) throws IOException {
 		cl.loadComponents(new File(envPath + "/models/weka-classifiers.json"));
 	}
 
+	/**
+	 * Loads Preprocessors from the environment, Note that this is a modified version which does not include the Attribute Selection Component, only Searchers and Evaluators
+	 * 
+	 * @param cl Component loader to be used
+	 * @param envPath Path to the environment
+	 * @throws IOException
+	 */
 	public static void loadPreprocessorComponents(ComponentLoader cl, String envPath) throws IOException {
 		cl.loadComponents(new File(envPath + "/models/weka-preprocessors.json"));
 	}
 
+	/**
+	 * Creates a Pipeline Instance 
+	 * 
+	 * @param searcher 
+	 * @param searcherParameter
+	 * @param evaluator
+	 * @param evaluatorParameter
+	 * @param classifier
+	 * @param classifierParameter
+	 * @return
+	 */
 	public static ComponentInstance createPipeline(Component searcher, Map<String, String> searcherParameter,
 			Component evaluator, Map<String, String> evaluatorParameter, Component classifier,
 			Map<String, String> classifierParameter) {
@@ -41,7 +66,7 @@ public class Util {
 			ComponentInstance searcherInstance = new ComponentInstance(searcher, searcherParameter, new HashMap<>());
 			ComponentInstance evaluatorInstance = new ComponentInstance(evaluator, evaluatorParameter, new HashMap<>());
 			ComponentInstance classifierInstance = new ComponentInstance(classifier, classifierParameter,
-					new HashMap<>()); // TODO req.!
+					new HashMap<>()); 
 
 			Map<String, ComponentInstance> satisfactionOfRequiredInterfacesPreprocessor = new HashMap<>();
 			satisfactionOfRequiredInterfacesPreprocessor.put("eval", evaluatorInstance);
@@ -56,11 +81,19 @@ public class Util {
 					satisfactionOfRequiredInterfacesPipeline);
 
 		} else {
-			return new ComponentInstance(classifier, classifierParameter, new HashMap<>()); // TODO req.!
+			return new ComponentInstance(classifier, classifierParameter, new HashMap<>());
 		}
 
 	}
 
+	/**
+	 * Creates a Pipeline Instance
+	 * 
+	 * @param searcherInstance
+	 * @param evaluatorInstance
+	 * @param classifierInstance
+	 * @return
+	 */
 	public static ComponentInstance createPipeline(ComponentInstance searcherInstance,
 			ComponentInstance evaluatorInstance, ComponentInstance classifierInstance) {
 		if (searcherInstance != null) {
@@ -81,6 +114,13 @@ public class Util {
 		}
 	}
 
+	/**
+	 * Loads a .arff Dataset, last Attribute as class
+	 * 
+	 * @param path Path to the Folder
+	 * @param name Name of the set
+	 * @return
+	 */
 	public static Instances loadInstances(String path, String name) {
 		DataSource ds;
 		Instances instances = null;
@@ -94,13 +134,19 @@ public class Util {
 		return instances;
 	}
 
+	/**
+	 * creates a unique parameter name, to distinguish between Searcher, Evaluator and Classifier Parameters
+	 * 
+	 * @param name
+	 * @param type
+	 * @return
+	 */
 	public static String convertToUniqueParamName(String name, ParamType type) {
 		switch (type) {
 		case searcher:
 			return String.format("%s_%s", name, "s");
 		case evaluator:
 			return String.format("%s_%s", name, "e");
-
 		case classifier:
 			return String.format("%s_%s", name, "c");
 
@@ -109,6 +155,13 @@ public class Util {
 		}
 	}
 	
+	/**
+	 * reverts a unique parameter name
+	 * 
+	 * @param name
+	 * @param type
+	 * @return
+	 */
 	public static String revertFromUniqueParamName(String name) {
 		if(name.length() <= 2) {
 			throw new IllegalArgumentException("Name is to short to be a unique name");
@@ -116,6 +169,13 @@ public class Util {
 		return name.substring(0, name.length()-2);
 	}
 	
+	/**
+	 * gets the Type of a unique parameter name (Searcher, Evaluator, Classifier)
+	 * 
+	 * @param name
+	 * @param type
+	 * @return
+	 */
 	public static ParamType getTypeFromUniqueParamName(String name) {
 		if(name.endsWith("s")) {
 			return ParamType.searcher;
